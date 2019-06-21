@@ -398,6 +398,7 @@ external_url 'https://gitlab.scsuk.net:443'
 
 ### GitLab Shell settings for GitLab
 # gitlab_rails['gitlab_shell_ssh_port'] = 22
+gitlab_rails['gitlab_shell_ssh_port'] = 10022
 # gitlab_rails['gitlab_shell_git_timeout'] = 800
 
 ### Extra customization
