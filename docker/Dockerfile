@@ -1,2 +1,2 @@
 FROM localhost:5000/docker/gitlab:11.11.3-ce.0
-RUN cp /opt/gitlab/etc/gitlab.rb.template /opt/gitlab/etc/gitlab.rb.template.ORIG && cp /assets/sshd_config /assets/sshd_config.ORIG && echo 'external_url "https://gitlab.scsuk.net:443"' >>/opt/gitlab/etc/gitlab.rb.template && echo "gitlab_rails['gitlab_shell_ssh_port'] = 10022" >>/opt/gitlab/etc/gitlab.rb.template && echo 'UsePrivilegeSeparation no' >>/assets/sshd_config
+copy config/scsuk_gitlab.rb /etc/gitlab
