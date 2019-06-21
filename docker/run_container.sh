@@ -1,30 +1,24 @@
 #!/bin/bash
-PROGDIR=$(dirname $0)
-echo "PROGDIR($PROGDIR)"
-
-docker volume create scs_gitlab_conf
-docker volume create scs_gitlab_logs
-docker volume create scs_gitlab_data
-docker volume create scs_gitlab_assets
-
-# Hack to update gitlab files
-echo docker container create --name scs_gitlab_copytmp \
--v scs_gitlab_conf:/conf \
--v scs_gitlab_assets:/assets \
-localhost:5000/scsuk.net/scratch:1.0
-echo docker cp "$PROGDIR"/../config/gitlab.rb scs_gitlab_copytmp:/conf
-echo docker cp "$PROGDIR"/../config/sshd_config scs_gitlab_copytmp:/assets
-echo docker rm scs_gitlab_copytmp
-
-exit 0
-
 
 docker run -d --name=scs_gitlab --network=jamnet --hostname=scs_gitlab --restart=always \
 --publish 10022:22 \
 --volume scs_gitlab_conf:/etc/gitlab \
 --volume scs_gitlab_logs:/var/log/gitlab \
 --volume scs_gitlab_data:/var/opt/gitlab \
---volume scs_gitlab_assets:/assets \
+--env GITLAB_OMNIBUS_CONFIG="external_url 'https://gitlab.scsuk.net:443'; gitlab_rails['gitlab_shell_ssh_port']=10022;" \
 localhost:5000/docker/gitlab:11.11.3-ce.0
 
-# -e "GITLAB_SHELL_SSH_PORT=10022"
+HEALTH=unchecked
+until [ "$HEALTH" = "healthy" ] ; do
+   sleep 10
+   HEALTH=$(/usr/bin/docker inspect -f {{.State.Health.Status}} scs_gitlab)
+done
+
+echo "Container up. Now update the /assets/sshd_config"
+
+# Tried hard to find a way to update /assets/sshd_config as part of the build/Dockerfile ( but not easy !! )
+# So doing it after container created/started
+docker exec scs_gitlab bash -c "echo 'UsePrivilegeSeparation no' >>/assets/sshd_config"
+# Then restart the sshd ( Could alternatively do a container restart - slower )
+docker exec scs_gitlab bash -c "/opt/gitlab/embedded/bin/sv restart sshd"
+#docker restart scs_gitlab
