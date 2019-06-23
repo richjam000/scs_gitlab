@@ -1,2 +1,1 @@
-# scs_gitlab
-
+SCS Gitlab
