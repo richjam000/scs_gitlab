@@ -1,6 +1,8 @@
 #!/bin/bash
 
 docker run -d --name=scs_gitlab --network=jamnet --hostname=scs_gitlab --restart=always \
+-e TZ=Europe/London \
+--publish 5005:5005 \
 --publish 10022:22 \
 --volume scs_gitlab_conf:/etc/gitlab \
 --volume scs_gitlab_logs:/var/log/gitlab \
@@ -16,9 +18,3 @@ done
 
 echo "Container up. Now update the /assets/sshd_config"
 
-# Tried hard to find a way to update /assets/sshd_config as part of the build/Dockerfile ( but not easy !! )
-# So doing it after container created/started
-docker exec scs_gitlab bash -c "echo 'UsePrivilegeSeparation no' >>/assets/sshd_config"
-# Then restart the sshd ( Could alternatively do a container restart - slower )
-docker exec scs_gitlab bash -c "/opt/gitlab/embedded/bin/sv restart sshd"
-#docker restart scs_gitlab
